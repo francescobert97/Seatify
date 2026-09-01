@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Card,
@@ -14,32 +14,14 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { HealthResponse } from "../types/api";
-import { fetchHealthCheck } from "../services/api";
+import { useFetch } from "../hooks/useFetch";
 
 export const HealthCheck: React.FC = () => {
-  const [data, setData] = useState<HealthResponse | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const checkHealth = async (): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response: HealthResponse = await fetchHealthCheck();
-      setData(response);
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Errore durante la connessione al server";
-      setError(errorMessage);
-      setData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, error, isLoading, execute } = useFetch<HealthResponse>();
 
   useEffect(() => {
-    void checkHealth();
-  }, []);
+    void execute("/api/health");
+  }, [execute]);
 
   return (
     <Card
@@ -62,7 +44,7 @@ export const HealthCheck: React.FC = () => {
           Stato del Backend (Fastify)
         </Typography>
 
-        {loading && (
+        {isLoading && (
           <Box
             sx={{
               display: "flex",
@@ -80,7 +62,7 @@ export const HealthCheck: React.FC = () => {
           </Box>
         )}
 
-        {!loading && error && (
+        {!isLoading && error && (
           <Stack spacing={2} sx={{ mb: 2 }}>
             <Alert
               severity="error"
@@ -90,12 +72,12 @@ export const HealthCheck: React.FC = () => {
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
                 Connessione non riuscita
               </Typography>
-              <Typography variant="body2">{error}</Typography>
+              <Typography variant="body2">{error.message}</Typography>
             </Alert>
           </Stack>
         )}
 
-        {!loading && data && (
+        {!isLoading && data && (
           <Box
             sx={{
               p: 2.5,
@@ -152,8 +134,8 @@ export const HealthCheck: React.FC = () => {
             variant="contained"
             color="primary"
             startIcon={<RefreshIcon />}
-            onClick={() => void checkHealth()}
-            disabled={loading}
+            onClick={() => void execute("/api/health")}
+            disabled={isLoading}
             sx={{
               textTransform: "none",
               fontWeight: 600,
@@ -169,4 +151,3 @@ export const HealthCheck: React.FC = () => {
     </Card>
   );
 };
-
