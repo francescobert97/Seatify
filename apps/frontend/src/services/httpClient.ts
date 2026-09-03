@@ -4,10 +4,15 @@ import { HttpError, HttpRequestConfig } from "../types/http";
 export class HttpClient {
   private readonly baseUrl: string;
   private readonly defaultHeaders: Record<string, string>;
+  private authTokenProvider?: () => Promise<string | null>;
 
   constructor(baseUrl: string = API_BASE_URL, defaultHeaders: Record<string, string> = DEFAULT_HEADERS) {
     this.baseUrl = baseUrl;
     this.defaultHeaders = defaultHeaders;
+  }
+
+  public setAuthTokenProvider(provider: () => Promise<string | null>): void {
+    this.authTokenProvider = provider;
   }
 
   private buildUrl(url: string, params?: HttpRequestConfig["params"]): string {
@@ -40,13 +45,33 @@ export class HttpClient {
   public async request<TData = unknown, TBody = unknown>(
     config: HttpRequestConfig<TBody>
   ): Promise<TData> {
-    const { url, method = "GET", headers = {}, params, body, signal } = config;
+    const { url, method = "GET", headers = {}, params, body, signal, requiresAuth } = config;
     const fullUrl = this.buildUrl(url, params);
 
     const mergedHeaders: Record<string, string> = {
       ...this.defaultHeaders,
       ...headers,
     };
+
+    // Attach Authorization header if auth is enabled and token is available
+    if (requiresAuth !== false && this.authTokenProvider) {
+      try {
+        const token = await this.authTokenProvider();
+        if (token) {
+          mergedHeaders["Authorization"] = `Bearer ${token}`;
+        } else if (requiresAuth === true) {
+          // If request strictly required auth and user is unauthenticated
+          throw new HttpError({
+            message: "Authentication required but no active session found",
+            status: 401,
+            statusText: "Unauthorized",
+          });
+        }
+      } catch (err) {
+        if (err instanceof HttpError) throw err;
+        // Proceed or handle provider error
+      }
+    }
 
     let serializedBody: BodyInit | undefined;
     if (body !== undefined && body !== null) {

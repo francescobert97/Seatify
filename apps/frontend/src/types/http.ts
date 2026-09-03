@@ -7,6 +7,7 @@ export interface HttpRequestConfig<TBody = unknown> {
   params?: Record<string, string | number | boolean | undefined | null>;
   body?: TBody;
   signal?: AbortSignal;
+  requiresAuth?: boolean;
 }
 
 export class HttpError extends Error {

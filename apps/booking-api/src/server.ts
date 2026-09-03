@@ -1,6 +1,8 @@
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import { HealthResponse } from "./types/health.js";
+import { authenticate } from "./auth/authenticate.js";
+import "./types/auth.js"; // Import Fastify request augmentation
 
 const server = Fastify({
   logger: true,
@@ -13,6 +15,7 @@ const start = async (): Promise<void> => {
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     });
 
+    // Public health check route
     server.get<{ Reply: HealthResponse }>(
       "/api/health",
       async (_request, _reply): Promise<HealthResponse> => {
@@ -20,6 +23,55 @@ const start = async (): Promise<void> => {
           status: "ok",
           message: "Booking API (Fastify) Attiva",
         };
+      }
+    );
+
+    // Protected Route: GET /api/me - Returns the authenticated Supabase user profile
+    server.get(
+      "/api/me",
+      {
+        preHandler: authenticate,
+      },
+      async (request, _reply) => {
+        return {
+          user: request.user,
+        };
+      }
+    );
+
+    // Protected Route: POST /api/bookings - Demonstrates accessing request.user.id securely
+    server.post<{
+      Body: { eventId: string; tickets: number };
+    }>(
+      "/api/bookings",
+      {
+        preHandler: authenticate,
+      },
+      async (request, reply) => {
+        const { eventId, tickets } = request.body || {};
+
+        if (!eventId || !tickets) {
+          reply.code(400).send({
+            error: "Bad Request",
+            message: "eventId and tickets are required fields",
+          });
+          return;
+        }
+
+        // Canonical user ID is strictly derived from verified JWT (request.user.id)
+        const booking = {
+          id: `bkg-${Date.now()}`,
+          userId: request.user.id,
+          eventId,
+          tickets,
+          createdAt: new Date().toISOString(),
+          status: "confirmed",
+        };
+
+        reply.code(201).send({
+          message: "Booking created successfully",
+          booking,
+        });
       }
     );
 
