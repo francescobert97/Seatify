@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -32,6 +32,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const { signIn, signUp } = useAuth();
   const [tabIndex, setTabIndex] = useState<number>(initialTab === "signup" ? 1 : 0);
+
+  useEffect(() => {
+    if (open) {
+      setTabIndex(initialTab === "signup" ? 1 : 0);
+      setErrorMsg(null);
+      setSuccessMsg(null);
+    }
+  }, [open, initialTab]);
 
   // Form states
   const [email, setEmail] = useState<string>("");
