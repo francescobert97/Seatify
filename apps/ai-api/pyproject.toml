@@ -1,0 +1,14 @@
+[project]
+name = "seatify-ai-api"
+version = "0.1.0"
+description = "AI API for Seatify"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

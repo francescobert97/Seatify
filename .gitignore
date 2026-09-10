@@ -2,6 +2,26 @@
 node_modules/
 .pnpm-store/
 
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Python tooling
+.ruff_cache/
+.pyright/
+.hypothesis/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Packaging
+*.egg-info/
+.eggs/
+
 # Build & Dist output
 dist/
 build/
