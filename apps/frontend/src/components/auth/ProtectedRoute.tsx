@@ -5,7 +5,7 @@ import { useAuth } from "../../auth/useAuth";
 import { AuthModal } from "./AuthModal";
 
 interface ProtectedRouteProps {
-  children: ReactNode;
+  children?: ReactNode;
   fallbackMessage?: string;
 }
 

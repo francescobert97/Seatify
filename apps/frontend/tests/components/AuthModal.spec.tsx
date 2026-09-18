@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach, Mock } from "vitest";
 import { render, screen, fireEvent, waitFor, act } from "@testing-library/react";
 import { AuthModal } from "../../src/components/auth/AuthModal";
 import { AuthContext } from "../../src/auth/AuthContext";
-import { AuthContextType, AuthError } from "../../src/types/auth";
+import { AuthContextType } from "../../src/types/auth";
 
-describe("AuthModal Component",() => {
+describe("AuthModal Component", () => {
   let mockSignIn: Mock<AuthContextType["signIn"]>;
   let mockSignUp: Mock<AuthContextType["signUp"]>;
   let mockOnClose: Mock<() => void>;
@@ -94,8 +94,7 @@ describe("AuthModal Component",() => {
   });
 
   it("should display error message on Log In failure", async () => {
-    const errorMessage ={ error: {name: 'InvalidLogin', message: "Invalid login credentials" } }
-    mockSignIn.mockResolvedValueOnce({ error: {name: 'InvalidLogin', message: "Invalid login credentials" } });
+    mockSignIn.mockResolvedValueOnce({ error: { name: 'InvalidLogin', message: "Invalid login credentials" } });
 
     renderWithAuth({ open: true, onClose: mockOnClose });
 
@@ -125,7 +124,16 @@ describe("AuthModal Component",() => {
   it("should call signUp with metadata and show success alert", async () => {
     vi.useFakeTimers();
     try {
-      mockSignUp.mockResolvedValueOnce({error: null, user: { id: "123", user_metadata: { firstName: "John", lastName: "Doe" }, aud: "authenticated", app_metadata: {}, created_at: new Date().getDate.toString() } });
+      mockSignUp.mockResolvedValueOnce({
+        error: null,
+        user: {
+          id: "123",
+          user_metadata: { firstName: "John", lastName: "Doe" },
+          aud: "authenticated",
+          app_metadata: {},
+          created_at: new Date().toISOString(),
+        },
+      });
 
       renderWithAuth({ open: true, onClose: mockOnClose, initialTab: "signup" });
 

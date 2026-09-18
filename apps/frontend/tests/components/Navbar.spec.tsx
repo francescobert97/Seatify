@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest";
-import React, { createElement as h } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { Navbar } from "../../src/components/layout/Navbar";
 import { AuthContext } from "../../src/auth/AuthContext";
@@ -22,7 +21,9 @@ describe("Navbar Component", () => {
 
   it("should render branding and unauthenticated action buttons", () => {
     render(
-      h(AuthContext.Provider, { value: createMockAuthContext() }, h(Navbar))
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     expect(screen.getAllByText("Seatify").length).toBeGreaterThanOrEqual(1);
@@ -32,7 +33,9 @@ describe("Navbar Component", () => {
 
   it("should open AuthModal with Log In tab when Log in button is clicked", () => {
     render(
-      h(AuthContext.Provider, { value: createMockAuthContext() }, h(Navbar))
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     const loginBtn = screen.getByRole("button", { name: /^Log in$/i });
@@ -43,7 +46,9 @@ describe("Navbar Component", () => {
 
   it("should open AuthModal with Sign Up tab when Sign up button is clicked", () => {
     render(
-      h(AuthContext.Provider, { value: createMockAuthContext() }, h(Navbar))
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     const signupBtn = screen.getAllByRole("button", { name: /^Sign up$/i })[0];
@@ -64,17 +69,15 @@ describe("Navbar Component", () => {
     };
 
     render(
-      h(
-        AuthContext.Provider,
-        {
-          value: createMockAuthContext({
-            isAuthenticated: true,
-            user: mockUser,
-            signOut: mockSignOut,
-          }),
-        },
-        h(Navbar)
-      )
+      <AuthContext.Provider
+        value={createMockAuthContext({
+          isAuthenticated: true,
+          user: mockUser,
+          signOut: mockSignOut,
+        })}
+      >
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     // Should display initials "MR"
@@ -104,7 +107,9 @@ describe("Navbar Component", () => {
     document.body.appendChild(targetElement);
 
     render(
-      h(AuthContext.Provider, { value: createMockAuthContext() }, h(Navbar))
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     const eventsBtn = screen.getByRole("button", { name: /^Events$/i });
@@ -116,7 +121,9 @@ describe("Navbar Component", () => {
 
   it("should toggle mobile navigation drawer", () => {
     render(
-      h(AuthContext.Provider, { value: createMockAuthContext() }, h(Navbar))
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
     );
 
     const drawerToggle = screen.getByLabelText("open navigation drawer");

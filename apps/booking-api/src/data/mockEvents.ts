@@ -1,4 +1,4 @@
-import { Event } from "../types/event";
+import { Event } from "../types/event.js";
 
 export const MOCK_EVENTS: Event[] = [
   {

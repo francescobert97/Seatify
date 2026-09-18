@@ -2,6 +2,7 @@ import Fastify, { FastifyInstance, FastifyServerOptions } from "fastify";
 import cors from "@fastify/cors";
 import { HealthResponse } from "./types/health.js";
 import { authenticate } from "./auth/authenticate.js";
+import { eventsRoutes } from "./routes/eventsRoutes.js";
 import "./types/auth.js"; // Import Fastify request augmentation
 
 export async function buildApp(opts: FastifyServerOptions = {}): Promise<FastifyInstance> {
@@ -11,6 +12,10 @@ export async function buildApp(opts: FastifyServerOptions = {}): Promise<Fastify
     origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   });
+
+  // Public events routes
+  await app.register(eventsRoutes);
+  await app.register(eventsRoutes, { prefix: "/api" });
 
   // Public health check route
   app.get<{ Reply: HealthResponse }>(

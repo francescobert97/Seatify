@@ -1,11 +1,10 @@
 import "@testing-library/jest-dom/vitest";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React, { createElement as h } from "react";
-import { render, screen, act } from "@testing-library/react";
-import { AuthProvider, AuthContext } from "../../src/auth/AuthContext";
+import { render, screen, act, waitFor } from "@testing-library/react";
+import { AuthProvider } from "../../src/auth/AuthContext";
 import { useAuth } from "../../src/auth/useAuth";
 import { supabase } from "../../src/auth/supabase";
-import { User, Session } from "@supabase/supabase-js";
+import { User, Session, AuthError } from "@supabase/supabase-js";
 
 describe("AuthProvider & useAuth", () => {
   const mockUser: User = {
@@ -32,22 +31,33 @@ describe("AuthProvider & useAuth", () => {
 
   const ConsumerComponent = () => {
     const auth = useAuth();
-    return h(
-      "div",
-      null,
-      h("span", { "data-testid": "loading" }, auth.isLoading ? "loading" : "idle"),
-      h("span", { "data-testid": "auth-status" }, auth.isAuthenticated ? "authenticated" : "anonymous"),
-      h("span", { "data-testid": "user-email" }, auth.user?.email || "none"),
-      h("button", { "data-testid": "btn-signin", onClick: () => auth.signIn("test@example.com", "pass123") }, "Sign In"),
-      h("button", { "data-testid": "btn-signup", onClick: () => auth.signUp("new@example.com", "pass123", { firstName: "New" }) }, "Sign Up"),
-      h("button", { "data-testid": "btn-signout", onClick: () => auth.signOut() }, "Sign Out"),
-      h("button", { "data-testid": "btn-oauth", onClick: () => auth.signInWithOAuth("google") }, "OAuth")
+    return (
+      <div>
+        <span data-testid="loading">{auth.isLoading ? "loading" : "idle"}</span>
+        <span data-testid="auth-status">{auth.isAuthenticated ? "authenticated" : "anonymous"}</span>
+        <span data-testid="user-email">{auth.user?.email || "none"}</span>
+        <button data-testid="btn-signin" onClick={() => auth.signIn("test@example.com", "pass123")}>
+          Sign In
+        </button>
+        <button
+          data-testid="btn-signup"
+          onClick={() => auth.signUp("new@example.com", "pass123", { firstName: "New" })}
+        >
+          Sign Up
+        </button>
+        <button data-testid="btn-signout" onClick={() => auth.signOut()}>
+          Sign Out
+        </button>
+        <button data-testid="btn-oauth" onClick={() => auth.signInWithOAuth("google")}>
+          OAuth
+        </button>
+      </div>
     );
   };
 
   it("should throw error when useAuth is used outside an AuthProvider", () => {
     const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
-    expect(() => render(h(ConsumerComponent))).toThrow(
+    expect(() => render(<ConsumerComponent />)).toThrow(
       "useAuth must be used within an <AuthProvider>"
     );
     consoleError.mockRestore();
@@ -70,10 +80,14 @@ describe("AuthProvider & useAuth", () => {
       },
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
 
     // Initially might be loading or restored
-    expect(await screen.findByTestId("loading")).toHaveTextContent("idle");
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
     expect(screen.getByTestId("auth-status")).toHaveTextContent("authenticated");
     expect(screen.getByTestId("user-email")).toHaveTextContent("jane@example.com");
   });
@@ -81,7 +95,7 @@ describe("AuthProvider & useAuth", () => {
   it("should handle getSession error gracefully and remain anonymous", async () => {
     vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
       data: { session: null },
-      error: { message: "Session expired", name: "AuthError", status: 400 },
+      error: { message: "Session expired", name: "AuthError", status: 400 } as unknown as AuthError,
     });
 
     vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
@@ -94,9 +108,13 @@ describe("AuthProvider & useAuth", () => {
       },
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
 
-    expect(await screen.findByTestId("loading")).toHaveTextContent("idle");
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
     expect(screen.getByTestId("auth-status")).toHaveTextContent("anonymous");
   });
 
@@ -114,8 +132,12 @@ describe("AuthProvider & useAuth", () => {
       error: null,
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
-    await screen.findByTestId("loading");
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
 
     const btn = screen.getByTestId("btn-signin");
     await act(async () => {
@@ -142,8 +164,12 @@ describe("AuthProvider & useAuth", () => {
       error: null,
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
-    await screen.findByTestId("loading");
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
 
     const btn = screen.getByTestId("btn-signup");
     await act(async () => {
@@ -172,8 +198,12 @@ describe("AuthProvider & useAuth", () => {
       error: null,
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
-    await screen.findByTestId("loading");
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
 
     const btn = screen.getByTestId("btn-signout");
     await act(async () => {
@@ -197,8 +227,12 @@ describe("AuthProvider & useAuth", () => {
       error: null,
     });
 
-    render(h(AuthProvider, null, h(ConsumerComponent)));
-    await screen.findByTestId("loading");
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
 
     const btn = screen.getByTestId("btn-oauth");
     await act(async () => {
@@ -211,6 +245,137 @@ describe("AuthProvider & useAuth", () => {
         redirectTo: window.location.origin,
       },
     });
+  });
+
+  it("should handle error thrown in signIn", async () => {
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+    vi.spyOn(supabase.auth, "signInWithPassword").mockRejectedValueOnce(new Error("Network failed"));
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+
+    const btn = screen.getByTestId("btn-signin");
+    await act(async () => {
+      btn.click();
+    });
+  });
+
+  it("should handle non-Error thrown in signIn", async () => {
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+    vi.spyOn(supabase.auth, "signInWithPassword").mockRejectedValueOnce("string-error");
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+
+    const btn = screen.getByTestId("btn-signin");
+    await act(async () => {
+      btn.click();
+    });
+  });
+
+  it("should handle error thrown in signUp", async () => {
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+    vi.spyOn(supabase.auth, "signUp").mockRejectedValueOnce(new Error("Signup failed"));
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+
+    const btn = screen.getByTestId("btn-signup");
+    await act(async () => {
+      btn.click();
+    });
+  });
+
+  it("should handle error thrown in signOut", async () => {
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: mockSession },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+    vi.spyOn(supabase.auth, "signOut").mockRejectedValueOnce(new Error("Signout failed"));
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+
+    const btn = screen.getByTestId("btn-signout");
+    await act(async () => {
+      btn.click();
+    });
+  });
+
+  it("should handle error thrown in signInWithOAuth", async () => {
+    vi.spyOn(supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    });
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+    vi.spyOn(supabase.auth, "signInWithOAuth").mockRejectedValueOnce(new Error("OAuth failed"));
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+
+    const btn = screen.getByTestId("btn-oauth");
+    await act(async () => {
+      btn.click();
+    });
+  });
+
+  it("should handle exception thrown during session initialization", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+    vi.spyOn(supabase.auth, "getSession").mockRejectedValueOnce(new Error("Fatal init crash"));
+    vi.spyOn(supabase.auth, "onAuthStateChange").mockReturnValueOnce({
+      data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
+    });
+
+    render(
+      <AuthProvider>
+        <ConsumerComponent />
+      </AuthProvider>
+    );
+    await waitFor(() => expect(screen.getByTestId("loading")).toHaveTextContent("idle"));
+    consoleError.mockRestore();
   });
 
   it("should unsubscribe on unmount", () => {
@@ -229,7 +394,11 @@ describe("AuthProvider & useAuth", () => {
       },
     });
 
-    const { unmount } = render(h(AuthProvider, null, h("div", null, "Hello")));
+    const { unmount } = render(
+      <AuthProvider>
+        <div>Hello</div>
+      </AuthProvider>
+    );
     unmount();
 
     expect(unsubscribeMock).toHaveBeenCalled();

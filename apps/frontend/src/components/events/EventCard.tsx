@@ -11,6 +11,7 @@ import {
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import { Event } from "../../types/event";
+import { formatEventDate } from "../../utils/date-formatter";
 
 interface EventCardProps {
   event: Event;
@@ -125,7 +126,7 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
             <Box sx={{ display: "flex", alignItems: "center", gap: 1, color: "text.secondary" }}>
               <CalendarTodayOutlinedIcon sx={{ fontSize: "0.95rem", color: "primary.main" }} />
               <Typography variant="body2" sx={{ fontWeight: 500, fontSize: "0.875rem" }}>
-                {event.date}
+                {formatEventDate(event.date)}
               </Typography>
             </Box>
 
@@ -176,4 +177,6 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
     </Card>
   );
 };
+
+
 

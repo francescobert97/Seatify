@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import React, { createElement as h } from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { HealthCheck } from "../../src/components/HealthCheck";
 import { HomePage } from "../../src/pages/Home/HomePage";
@@ -9,6 +8,7 @@ import { HttpError } from "../../src/types/http";
 import { AuthContext } from "../../src/auth/AuthContext";
 import { AuthContextType } from "../../src/types/auth";
 import { supabase } from "../../src/auth/supabase";
+import { MOCK_EVENTS } from "../../src/data/mockEvents";
 
 describe("HealthCheck, HomePage & App", () => {
   beforeEach(() => {
@@ -35,7 +35,7 @@ describe("HealthCheck, HomePage & App", () => {
         message: "Booking API Active",
       });
 
-      render(h(HealthCheck));
+      render(<HealthCheck />);
 
       expect(screen.getByText(/Verifica connessione in corso.../i)).toBeInTheDocument();
 
@@ -49,7 +49,7 @@ describe("HealthCheck, HomePage & App", () => {
         new HttpError({ message: "Network connection lost", isNetworkError: true })
       );
 
-      render(h(HealthCheck));
+      render(<HealthCheck />);
 
       await waitFor(() => {
         expect(screen.getByText(/Network connection lost/i)).toBeInTheDocument();
@@ -58,10 +58,18 @@ describe("HealthCheck, HomePage & App", () => {
   });
 
   describe("HomePage", () => {
-    it("should filter events when typing in search query or selecting categories", () => {
+    it("should fetch events and filter when typing in search query or selecting categories", async () => {
+      vi.spyOn(httpClient, "request").mockResolvedValue(MOCK_EVENTS);
+
       render(
-        h(AuthContext.Provider, { value: createMockAuthContext() }, h(HomePage))
+        <AuthContext.Provider value={createMockAuthContext()}>
+          <HomePage />
+        </AuthContext.Provider>
       );
+
+      // Wait for events to load from API
+      expect(await screen.findByText(/Taylor Swift/i)).toBeInTheDocument();
+      expect(screen.getByText(/UEFA Champions League/i)).toBeInTheDocument();
 
       // Search input
       const searchInput = screen.getByPlaceholderText(/Search events, artists, venues.../i);
@@ -81,6 +89,17 @@ describe("HealthCheck, HomePage & App", () => {
       fireEvent.click(sportsCard);
 
       expect(screen.getByText(/UEFA Champions League/i)).toBeInTheDocument();
+
+      // Click event card
+      const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
+      const eventCard = screen.getByText(/UEFA Champions League/i);
+      fireEvent.click(eventCard);
+      expect(consoleLog).toHaveBeenCalledWith("Selected event:", "evt-2", "UEFA Champions League Final");
+      consoleLog.mockRestore();
+
+      // Click View all
+      const viewAllBtn = screen.getByRole("button", { name: /View all/i });
+      fireEvent.click(viewAllBtn);
     });
   });
 
@@ -94,7 +113,7 @@ describe("HealthCheck, HomePage & App", () => {
         data: { subscription: { id: "1", callback: vi.fn(), unsubscribe: vi.fn() } },
       });
 
-      render(h(App));
+      render(<App />);
       expect(screen.getAllByText(/Seatify/i).length).toBeGreaterThanOrEqual(1);
     });
   });

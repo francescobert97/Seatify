@@ -1,16 +1,23 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Box } from "@mui/material";
 import { Navbar } from "../../components/layout/Navbar";
 import { Footer } from "../../components/layout/Footer";
 import { HeroSection } from "../../components/hero/HeroSection";
 import { CategorySection } from "../../components/categories/CategorySection";
 import { UpcomingEventsSection } from "../../components/events/UpcomingEventsSection";
-import { MOCK_EVENTS } from "../../data/mockEvents";
 import { Event, EventCategory } from "../../types/event";
+import { useFetch } from "../../hooks/useFetch";
 
 export const HomePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | "all">("all");
+  const { data: eventsData, execute } = useFetch<Event[]>();
+
+  useEffect(() => {
+    void execute("/events");
+  }, [execute]);
+
+  const events = eventsData ?? [];
 
   const handleSearch = (query: string): void => {
     setSearchQuery(query);
@@ -42,9 +49,9 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  // Filter events based on search query and selected category
+  // Filter events based on search query and selected category from original dataset
   const filteredEvents = useMemo(() => {
-    return MOCK_EVENTS.filter((event) => {
+    return events.filter((event) => {
       const matchesCategory =
         selectedCategory === "all" || event.category === selectedCategory;
 
@@ -56,7 +63,7 @@ export const HomePage: React.FC = () => {
 
       return matchesCategory && matchesSearch;
     });
-  }, [searchQuery, selectedCategory]);
+  }, [events, searchQuery, selectedCategory]);
 
   return (
     <Box
@@ -93,4 +100,3 @@ export const HomePage: React.FC = () => {
     </Box>
   );
 };
-
