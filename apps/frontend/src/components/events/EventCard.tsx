@@ -7,11 +7,14 @@ import {
   Box,
   Chip,
   Stack,
+  Button,
 } from "@mui/material";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import { Event } from "../../types/event";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import { Event, getStartingPrice } from "../../types/event";
 import { formatEventDate } from "../../utils/date-formatter";
+import { navigate } from "../../router/navigation";
 
 interface EventCardProps {
   event: Event;
@@ -28,11 +31,22 @@ const CATEGORY_COLORS: Record<string, { bg: string; text: string }> = {
 
 export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
   const categoryStyle = CATEGORY_COLORS[event.category] || CATEGORY_COLORS.other;
+  const startingPrice = getStartingPrice(event);
+
+  const handleCardClick = () => {
+    navigate(`/events/${event.id}`);
+    onClick?.(event);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    handleCardClick();
+  };
 
   return (
     <Card
       elevation={0}
-      onClick={() => onClick?.(event)}
+      onClick={handleCardClick}
       sx={{
         height: "100%",
         display: "flex",
@@ -148,35 +162,56 @@ export const EventCard: React.FC<EventCardProps> = ({ event, onClick }) => {
           </Stack>
         </Box>
 
-        {/* Pricing Footer */}
+        {/* Pricing & Action Footer */}
         <Box
           sx={{
-            pt: 1.5,
+            pt: 2,
             borderTop: "1px solid",
             borderColor: "divider",
             display: "flex",
-            alignItems: "baseline",
+            alignItems: "center",
             justifyContent: "space-between",
+            gap: 1,
           }}
         >
-          <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500 }}>
-            Starting from
-          </Typography>
-          <Typography
-            variant="subtitle1"
+          <Box>
+            <Typography variant="caption" sx={{ color: "text.secondary", fontWeight: 500, display: "block", lineHeight: 1.2 }}>
+              Starting from
+            </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: 800,
+                color: "text.primary",
+                fontSize: "1.05rem",
+              }}
+            >
+              {event.currency || "€"}{startingPrice}
+            </Typography>
+          </Box>
+
+          <Button
+            variant="contained"
+            size="small"
+            endIcon={<ArrowForwardIcon sx={{ fontSize: "0.9rem !important" }} />}
+            onClick={handleButtonClick}
             sx={{
-              fontWeight: 800,
-              color: "text.primary",
-              fontSize: "1.05rem",
+              textTransform: "none",
+              fontWeight: 700,
+              fontSize: "0.85rem",
+              borderRadius: 2,
+              px: 2,
+              py: 0.75,
+              boxShadow: "none",
+              "&:hover": {
+                boxShadow: "0 4px 12px rgba(37, 99, 235, 0.25)",
+              },
             }}
           >
-            {event.currency || "€"}{event.priceStartingFrom}
-          </Typography>
+            View event
+          </Button>
         </Box>
       </CardContent>
     </Card>
   );
 };
-
-
-

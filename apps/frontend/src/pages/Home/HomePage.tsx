@@ -8,6 +8,8 @@ import { UpcomingEventsSection } from "../../components/events/UpcomingEventsSec
 import { Event, EventCategory } from "../../types/event";
 import { useFetch } from "../../hooks/useFetch";
 
+import { navigate } from "../../router/navigation";
+
 export const HomePage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<EventCategory | "all">("all");
@@ -37,8 +39,8 @@ export const HomePage: React.FC = () => {
   };
 
   const handleEventClick = (event: Event): void => {
-    // Interactive action ready for future event details / reservation routing
     console.log("Selected event:", event.id, event.title);
+    navigate(`/events/${event.id}`);
   };
 
   const handleViewAll = (): void => {

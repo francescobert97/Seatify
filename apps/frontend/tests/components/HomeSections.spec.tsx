@@ -8,6 +8,7 @@ import { EventCard } from "../../src/components/events/EventCard";
 import { EventGrid } from "../../src/components/events/EventGrid";
 import { Footer } from "../../src/components/layout/Footer";
 import { MOCK_EVENTS } from "../../src/data/mockEvents";
+import { getStartingPrice } from "../../src/types/event";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 
 describe("Home & Event UI Components", () => {
@@ -139,7 +140,8 @@ describe("Home & Event UI Components", () => {
 
       expect(screen.getByText(event.title)).toBeInTheDocument();
       expect(screen.getByText(new RegExp(event.city))).toBeInTheDocument();
-      expect(screen.getByText(new RegExp(String(event.priceStartingFrom)))).toBeInTheDocument();
+      expect(screen.getByText(new RegExp(String(getStartingPrice(event))))).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /View event/i })).toBeInTheDocument();
 
       fireEvent.click(screen.getByText(event.title));
       expect(handleClick).toHaveBeenCalledWith(event);

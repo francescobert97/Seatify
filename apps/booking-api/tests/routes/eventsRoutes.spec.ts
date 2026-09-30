@@ -28,7 +28,8 @@ describe("Events Routes - GET /events and GET /events/:id", () => {
       expect(body[0]).toHaveProperty("id");
       expect(body[0]).toHaveProperty("title");
       expect(body[0]).toHaveProperty("category");
-      expect(body[0]).toHaveProperty("priceStartingFrom");
+      expect(body[0]).toHaveProperty("description");
+      expect(body[0]).toHaveProperty("ticketTypes");
     });
 
     it("should also support GET /api/events prefix", async () => {

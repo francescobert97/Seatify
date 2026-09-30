@@ -7,22 +7,40 @@ describe("MockEventRepository", () => {
     {
       id: "test-1",
       title: "Test Event 1",
+      description: "Test description 1",
       category: "concerts",
       date: "2026-09-12T19:30:00",
       venue: "Wembley",
       city: "London",
       imageUrl: "https://example.com/img1.jpg",
-      priceStartingFrom: 50,
+      ticketTypes: [
+        {
+          id: "tt-1",
+          name: "Standard",
+          description: "Standard ticket",
+          price: 50,
+          available: 20,
+        },
+      ],
     },
     {
       id: "test-2",
       title: "Test Event 2",
+      description: "Test description 2",
       category: "sports",
       date: "2026-10-04T21:00:00",
       venue: "Allianz",
       city: "Munich",
       imageUrl: "https://example.com/img2.jpg",
-      priceStartingFrom: 100,
+      ticketTypes: [
+        {
+          id: "tt-2",
+          name: "Standard",
+          description: "Standard ticket",
+          price: 100,
+          available: 15,
+        },
+      ],
     },
   ];
 
