@@ -119,7 +119,7 @@ describe("Navbar Component", () => {
     document.body.removeChild(targetElement);
   });
 
-  it("should toggle mobile navigation drawer", () => {
+  it("should toggle mobile navigation drawer and handle mobile menu items", () => {
     render(
       <AuthContext.Provider value={createMockAuthContext()}>
         <Navbar />
@@ -129,9 +129,65 @@ describe("Navbar Component", () => {
     const drawerToggle = screen.getByLabelText("open navigation drawer");
     fireEvent.click(drawerToggle);
 
+    // Click mobile nav link
+    const mobileEventsLink = screen.getAllByText("Events")[1];
+    fireEvent.click(mobileEventsLink);
+
+    // Reopen and click mobile cart item
+    fireEvent.click(drawerToggle);
+    const mobileCartItem = screen.getByText(/Cart \(0\)/i);
+    fireEvent.click(mobileCartItem);
+
     // Drawer should have close button
     const closeBtn = screen.getByLabelText("close drawer");
     expect(closeBtn).toBeInTheDocument();
     fireEvent.click(closeBtn);
+  });
+
+  it("should open CartDrawer when clicking shopping cart button in navbar", () => {
+    render(
+      <AuthContext.Provider value={createMockAuthContext()}>
+        <Navbar />
+      </AuthContext.Provider>
+    );
+
+    const cartBtn = screen.getAllByLabelText("shopping cart")[0];
+    fireEvent.click(cartBtn);
+
+    expect(screen.getByText("Your Cart")).toBeInTheDocument();
+  });
+
+  it("should handle mobile sign out when authenticated", async () => {
+    const mockSignOut = vi.fn().mockResolvedValue({ error: null });
+    const mockUser: User = {
+      id: "u1",
+      email: "maria.rossi@example.com",
+      user_metadata: { firstName: "Maria", lastName: "Rossi" },
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: "",
+    };
+
+    render(
+      <AuthContext.Provider
+        value={createMockAuthContext({
+          isAuthenticated: true,
+          user: mockUser,
+          signOut: mockSignOut,
+        })}
+      >
+        <Navbar />
+      </AuthContext.Provider>
+    );
+
+    const drawerToggle = screen.getByLabelText("open navigation drawer");
+    fireEvent.click(drawerToggle);
+
+    const mobileSignOutBtn = screen.getAllByRole("button", { name: /Sign out/i })[0];
+    fireEvent.click(mobileSignOutBtn);
+
+    await waitFor(() => {
+      expect(mockSignOut).toHaveBeenCalled();
+    });
   });
 });

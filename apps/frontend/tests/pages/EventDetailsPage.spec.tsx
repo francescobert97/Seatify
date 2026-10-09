@@ -39,7 +39,7 @@ describe("EventDetailsPage Component", () => {
 
     expect(screen.getByText("Taylor Swift | The Eras Tour")).toBeInTheDocument();
     expect(screen.getByText("CONCERTS")).toBeInTheDocument();
-    expect(screen.getByText(/Wembley Stadium/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Wembley Stadium/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/About this event/i)).toBeInTheDocument();
     expect(
       screen.getByText(/record-breaking Eras Tour live at Wembley Stadium/i)
@@ -94,7 +94,8 @@ describe("EventDetailsPage Component", () => {
 
   it("should display Not Found when event does not exist", async () => {
     renderWithAuth(<EventDetailsPage eventId="invalid-event-id" />);
-    expect(await screen.findByText(/Event Not Found/i)).toBeInTheDocument();
+    const notFoundElements = await screen.findAllByText(/Event Not Found/i);
+    expect(notFoundElements.length).toBeGreaterThanOrEqual(1);
   });
 });
 

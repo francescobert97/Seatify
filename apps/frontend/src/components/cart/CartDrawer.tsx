@@ -354,25 +354,24 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ open, onClose }) => {
           </Box>
 
           <Stack spacing={1.5}>
-            {/* Visibly disabled Checkout button */}
-            <Tooltip title="Checkout is currently disabled" arrow>
-              <span>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  disabled
-                  sx={{
-                    py: 1.25,
-                    fontWeight: 700,
-                    fontSize: "0.95rem",
-                    borderRadius: 2,
-                    textTransform: "none",
-                  }}
-                >
-                  Proceed to Checkout
-                </Button>
-              </span>
-            </Tooltip>
+            {/* Checkout button */}
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => {
+                onClose();
+                navigate("/checkout");
+              }}
+              sx={{
+                py: 1.25,
+                fontWeight: 700,
+                fontSize: "0.95rem",
+                borderRadius: 2,
+                textTransform: "none",
+              }}
+            >
+              Proceed to Checkout
+            </Button>
 
             {/* Clear Cart Button */}
             <Button

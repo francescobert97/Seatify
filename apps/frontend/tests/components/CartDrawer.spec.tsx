@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { CartDrawer } from "../../src/components/cart/CartDrawer";
 import { useCartStore } from "../../src/store/cartStore";
+import * as navigation from "../../src/router/navigation";
+import { httpClient } from "../../src/services/httpClient";
 
 describe("CartDrawer Component", () => {
   beforeEach(() => {
@@ -75,13 +77,39 @@ describe("CartDrawer Component", () => {
     expect(screen.getByText("Your cart is empty")).toBeInTheDocument();
   });
 
-  it("should display disabled Checkout button", () => {
+  it("should display enabled Checkout button and navigate to /checkout on click", () => {
+    const navigateSpy = vi.spyOn(navigation, "navigate").mockImplementation(() => {});
+    const handleClose = vi.fn();
     useCartStore.getState().addItem("evt-1", "tt-1-1", 1);
-    render(<CartDrawer open={true} onClose={vi.fn()} />);
+    render(<CartDrawer open={true} onClose={handleClose} />);
 
     const checkoutBtn = screen.getByRole("button", { name: /Proceed to Checkout/i });
     expect(checkoutBtn).toBeInTheDocument();
-    expect(checkoutBtn).toBeDisabled();
+    expect(checkoutBtn).toBeEnabled();
+
+    fireEvent.click(checkoutBtn);
+    expect(handleClose).toHaveBeenCalled();
+    expect(navigateSpy).toHaveBeenCalledWith("/checkout");
+  });
+
+  it("should update events when fetched from backend API", async () => {
+    vi.spyOn(httpClient, "request").mockResolvedValueOnce([
+      {
+        id: "evt-1",
+        title: "Fetched Taylor Swift",
+        category: "concerts",
+        date: "2026-09-12T19:30:00",
+        venue: "Wembley",
+        city: "London",
+        imageUrl: "",
+        ticketTypes: [{ id: "tt-1-1", name: "Custom GA", price: 90, available: 10 }],
+      },
+    ]);
+
+    useCartStore.getState().addItem("evt-1", "tt-1-1", 1);
+    render(<CartDrawer open={true} onClose={vi.fn()} />);
+
+    expect(await screen.findByText("Fetched Taylor Swift")).toBeInTheDocument();
   });
 });
 
