@@ -5,16 +5,19 @@ import { AuthProvider } from "./auth/AuthContext";
 import { HomePage } from "./pages/Home/HomePage";
 import { EventDetailsPage } from "./pages/EventDetails/EventDetailsPage";
 import { CheckoutPage } from "./pages/Checkout/CheckoutPage";
+import { AccountPage } from "./pages/Account/AccountPage";
 import { useCurrentRoute } from "./router/navigation";
 
 export const App: React.FC = () => {
-  const { eventId, isCheckout } = useCurrentRoute();
+  const { eventId, isCheckout, isAccount } = useCurrentRoute();
 
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AuthProvider>
-        {isCheckout ? (
+        {isAccount ? (
+          <AccountPage />
+        ) : isCheckout ? (
           <CheckoutPage />
         ) : eventId ? (
           <EventDetailsPage eventId={eventId} />

@@ -4,6 +4,7 @@ import { Navbar } from "../../src/components/layout/Navbar";
 import { AuthContext } from "../../src/auth/AuthContext";
 import { AuthContextType } from "../../src/types/auth";
 import { User } from "@supabase/supabase-js";
+import * as navigation from "../../src/router/navigation";
 
 describe("Navbar Component", () => {
   const createMockAuthContext = (overrides?: Partial<AuthContextType>): AuthContextType => ({
@@ -88,8 +89,9 @@ describe("Navbar Component", () => {
     const profileBtn = screen.getByRole("button", { name: /Maria Rossi/i });
     fireEvent.click(profileBtn);
 
-    // Menu should be open with email and Sign out option
+    // Menu should be open with email, My Account, and Sign out options
     expect(screen.getAllByText("maria.rossi@example.com")[0]).toBeInTheDocument();
+    expect(screen.getByRole("menuitem", { name: /My Account/i })).toBeInTheDocument();
     const signOutItem = screen.getAllByText("Sign out")[0];
     expect(signOutItem).toBeInTheDocument();
 
@@ -97,6 +99,68 @@ describe("Navbar Component", () => {
     await waitFor(() => {
       expect(mockSignOut).toHaveBeenCalled();
     });
+  });
+
+  it("should navigate to /account when My Account is clicked in profile menu", () => {
+    const navigateSpy = vi.spyOn(navigation, "navigate").mockImplementation(() => {});
+    const mockUser: User = {
+      id: "u1",
+      email: "maria.rossi@example.com",
+      user_metadata: { firstName: "Maria", lastName: "Rossi" },
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: "",
+    };
+
+    render(
+      <AuthContext.Provider
+        value={createMockAuthContext({
+          isAuthenticated: true,
+          user: mockUser,
+        })}
+      >
+        <Navbar />
+      </AuthContext.Provider>
+    );
+
+    const profileBtn = screen.getByRole("button", { name: /Maria Rossi/i });
+    fireEvent.click(profileBtn);
+
+    const accountItem = screen.getByRole("menuitem", { name: /My Account/i });
+    fireEvent.click(accountItem);
+
+    expect(navigateSpy).toHaveBeenCalledWith("/account");
+  });
+
+  it("should navigate to /account when My Account is clicked in authenticated mobile drawer", () => {
+    const navigateSpy = vi.spyOn(navigation, "navigate").mockImplementation(() => {});
+    const mockUser: User = {
+      id: "u1",
+      email: "maria.rossi@example.com",
+      user_metadata: { firstName: "Maria", lastName: "Rossi" },
+      app_metadata: {},
+      aud: "authenticated",
+      created_at: "",
+    };
+
+    render(
+      <AuthContext.Provider
+        value={createMockAuthContext({
+          isAuthenticated: true,
+          user: mockUser,
+        })}
+      >
+        <Navbar />
+      </AuthContext.Provider>
+    );
+
+    const drawerToggle = screen.getByLabelText("open navigation drawer");
+    fireEvent.click(drawerToggle);
+
+    const accountBtn = screen.getByRole("button", { name: /My Account/i });
+    fireEvent.click(accountBtn);
+
+    expect(navigateSpy).toHaveBeenCalledWith("/account");
   });
 
   it("should handle navigation link click", () => {

@@ -11,16 +11,19 @@ export interface RouteInfo {
   path: string;
   eventId: string | null;
   isCheckout: boolean;
+  isAccount: boolean;
 }
 
 export function parseRoute(pathname: string): RouteInfo {
   // Support both /events/:id and /events/:id/
   const match = pathname.match(/^\/events\/([a-zA-Z0-9_-]+)/);
   const isCheckout = pathname === "/checkout" || pathname.startsWith("/checkout/");
+  const isAccount = pathname === "/account" || pathname.startsWith("/account/");
   return {
     path: pathname,
     eventId: match ? match[1] : null,
     isCheckout,
+    isAccount,
   };
 }
 

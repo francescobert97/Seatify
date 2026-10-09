@@ -275,6 +275,20 @@ export const Navbar: React.FC = () => {
                       </Typography>
                     </Box>
                     <Divider />
+                    <MenuItem
+                      onClick={() => {
+                        handleProfileMenuClose();
+                        navigate("/account");
+                      }}
+                      sx={{ py: 1 }}
+                    >
+                      <ListItemIcon>
+                        <PersonOutlineIcon fontSize="small" />
+                      </ListItemIcon>
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        My Account
+                      </Typography>
+                    </MenuItem>
                     <MenuItem onClick={handleSignOut} sx={{ py: 1, color: "error.main" }}>
                       <ListItemIcon sx={{ color: "error.main" }}>
                         <LogoutIcon fontSize="small" />
@@ -431,16 +445,30 @@ export const Navbar: React.FC = () => {
           <Divider sx={{ my: 2 }} />
 
           {isAuthenticated ? (
-            <Button
-              fullWidth
-              variant="outlined"
-              color="error"
-              startIcon={<LogoutIcon />}
-              onClick={handleSignOut}
-              sx={{ borderRadius: 2, py: 1 }}
-            >
-              Sign out
-            </Button>
+            <Stack spacing={1.5}>
+              <Button
+                fullWidth
+                variant="outlined"
+                startIcon={<PersonOutlineIcon />}
+                onClick={() => {
+                  setMobileOpen(false);
+                  navigate("/account");
+                }}
+                sx={{ borderRadius: 2, py: 1 }}
+              >
+                My Account
+              </Button>
+              <Button
+                fullWidth
+                variant="outlined"
+                color="error"
+                startIcon={<LogoutIcon />}
+                onClick={handleSignOut}
+                sx={{ borderRadius: 2, py: 1 }}
+              >
+                Sign out
+              </Button>
+            </Stack>
           ) : (
             <Stack spacing={1.5}>
               <Button
