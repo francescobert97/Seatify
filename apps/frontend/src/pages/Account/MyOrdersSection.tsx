@@ -23,7 +23,7 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
-import { Order, OrderStatus } from "../../types/order";
+import { Order, OrderStatus, getOrderStatusLabel } from "../../types/order";
 import { formatEventDate } from "../../utils/date-formatter";
 import { navigate } from "../../router/navigation";
 import { useChatStore } from "../../store/chatStore";
@@ -34,10 +34,15 @@ interface MyOrdersSectionProps {
   onSelectOrder: (order: Order | null) => void;
 }
 
-const STATUS_CHIP_COLORS: Record<OrderStatus, "success" | "default" | "error"> = {
-  confirmed: "success",
-  completed: "default",
-  cancelled: "error",
+export const STATUS_CHIP_COLORS: Record<
+  OrderStatus,
+  "default" | "success" | "warning" | "error" | "info"
+> = {
+  completed: "success",
+  pending: "warning",
+  refund_requested: "info",
+  refunded: "default",
+  canceled: "error",
 };
 
 export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
@@ -84,18 +89,28 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
             sx={{ textTransform: "none", fontWeight: 600 }}
           />
           <Tab
-            value="confirmed"
-            label={`Confirmed (${getStatusCount("confirmed")})`}
-            sx={{ textTransform: "none", fontWeight: 600 }}
-          />
-          <Tab
             value="completed"
             label={`Completed (${getStatusCount("completed")})`}
             sx={{ textTransform: "none", fontWeight: 600 }}
           />
           <Tab
-            value="cancelled"
-            label={`Cancelled (${getStatusCount("cancelled")})`}
+            value="pending"
+            label={`Pending Payment (${getStatusCount("pending")})`}
+            sx={{ textTransform: "none", fontWeight: 600 }}
+          />
+          <Tab
+            value="refund_requested"
+            label={`Refund Requested (${getStatusCount("refund_requested")})`}
+            sx={{ textTransform: "none", fontWeight: 600 }}
+          />
+          <Tab
+            value="refunded"
+            label={`Refunded (${getStatusCount("refunded")})`}
+            sx={{ textTransform: "none", fontWeight: 600 }}
+          />
+          <Tab
+            value="canceled"
+            label={`Canceled (${getStatusCount("canceled")})`}
             sx={{ textTransform: "none", fontWeight: 600 }}
           />
         </Tabs>
@@ -172,7 +187,7 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
                   </Typography>
                 </Box>
                 <Chip
-                  label={order.status.toUpperCase()}
+                  label={getOrderStatusLabel(order.status)}
                   size="small"
                   color={STATUS_CHIP_COLORS[order.status] || "default"}
                   sx={{ fontWeight: 700, fontSize: "0.75rem" }}
@@ -281,7 +296,7 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
                   {selectedOrder.eventName}
                 </Typography>
                 <Chip
-                  label={selectedOrder.status.toUpperCase()}
+                  label={getOrderStatusLabel(selectedOrder.status)}
                   size="small"
                   color={STATUS_CHIP_COLORS[selectedOrder.status] || "default"}
                   sx={{ fontWeight: 700, fontSize: "0.75rem" }}
@@ -366,7 +381,7 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
                   Status:
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600, color: "text.primary" }}>
-                  {selectedOrder.status.toUpperCase()}
+                  {getOrderStatusLabel(selectedOrder.status)}
                 </Typography>
               </Box>
 

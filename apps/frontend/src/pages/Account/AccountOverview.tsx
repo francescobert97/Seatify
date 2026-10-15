@@ -15,8 +15,9 @@ import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CalendarTodayOutlinedIcon from "@mui/icons-material/CalendarTodayOutlined";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
-import { Order } from "../../types/order";
+import { Order, getOrderStatusLabel } from "../../types/order";
 import { formatEventDate } from "../../utils/date-formatter";
+import { STATUS_CHIP_COLORS } from "./MyOrdersSection";
 
 interface AccountOverviewProps {
   userDisplayName: string;
@@ -25,19 +26,15 @@ interface AccountOverviewProps {
   onSelectOrder: (order: Order) => void;
 }
 
-const STATUS_CHIP_COLORS: Record<string, "success" | "default" | "error"> = {
-  confirmed: "success",
-  completed: "default",
-  cancelled: "error",
-};
-
 export const AccountOverview: React.FC<AccountOverviewProps> = ({
   userDisplayName,
   orders,
   onNavigateTab,
   onSelectOrder,
 }) => {
-  const confirmedOrdersCount = orders.filter((o) => o.status === "confirmed").length;
+  const activeBookingsCount = orders.filter(
+    (o) => o.status === "completed" && new Date(o.eventDate) >= new Date()
+  ).length;
   const recentOrders = orders.slice(0, 2);
 
   return (
@@ -142,7 +139,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
                 </Typography>
               </Box>
               <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                {confirmedOrdersCount}
+                {activeBookingsCount}
               </Typography>
             </CardContent>
           </Card>
@@ -239,7 +236,7 @@ export const AccountOverview: React.FC<AccountOverviewProps> = ({
                       {order.eventName}
                     </Typography>
                     <Chip
-                      label={order.status.toUpperCase()}
+                      label={getOrderStatusLabel(order.status)}
                       size="small"
                       color={STATUS_CHIP_COLORS[order.status] || "default"}
                       sx={{ fontWeight: 700, fontSize: "0.7rem", height: 22 }}

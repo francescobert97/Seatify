@@ -126,11 +126,7 @@ export const CheckoutPage: React.FC = () => {
 
     try {
       const response = await httpClient.post<PaymentResponse>("/api/payments", {
-        items: items.map((item) => ({
-          eventId: item.eventId,
-          ticketTypeId: item.ticketTypeId,
-          quantity: item.quantity,
-        })),
+        items,
         currency: "EUR",
       });
 

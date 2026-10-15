@@ -10,6 +10,7 @@ import { User } from "@supabase/supabase-js";
 import { MOCK_ORDERS } from "../../src/data/mockOrders";
 import * as navigation from "../../src/router/navigation";
 import { useChatStore } from "../../src/store/chatStore";
+import { isActiveBooking, isPastBooking, getOrderStatusLabel } from "../../src/types/order";
 
 describe("AccountPage & Customer Area", () => {
   const createMockAuthContext = (overrides?: Partial<AuthContextType>): AuthContextType => ({
@@ -172,7 +173,7 @@ describe("AccountPage & Customer Area", () => {
       expect(screen.getByText(/Wembley Stadium, London, UK/i)).toBeInTheDocument();
       expect(screen.getAllByText(/2 tickets/i).length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("€170")).toBeInTheDocument();
-      expect(screen.getAllByText("CONFIRMED").length).toBeGreaterThan(0);
+      expect(screen.getAllByText("Completed").length).toBeGreaterThan(0);
     });
 
     it("should filter orders by status tabs", () => {
@@ -188,17 +189,32 @@ describe("AccountPage & Customer Area", () => {
       expect(screen.getByText("Taylor Swift | The Eras Tour")).toBeInTheDocument();
       expect(screen.getByText("Tomorrowland 2026")).toBeInTheDocument();
 
-      // Filter by Confirmed
-      const confirmedTab = screen.getByRole("tab", { name: /Confirmed/i });
-      fireEvent.click(confirmedTab);
+      // Filter by Completed
+      const completedTab = screen.getByRole("tab", { name: /Completed/i });
+      fireEvent.click(completedTab);
       expect(screen.getByText("Taylor Swift | The Eras Tour")).toBeInTheDocument();
       expect(screen.queryByText("Tomorrowland 2026")).not.toBeInTheDocument();
 
-      // Filter by Cancelled
-      const cancelledTab = screen.getByRole("tab", { name: /Cancelled/i });
-      fireEvent.click(cancelledTab);
+      // Filter by Canceled
+      const canceledTab = screen.getByRole("tab", { name: /Canceled/i });
+      fireEvent.click(canceledTab);
       expect(screen.queryByText("Taylor Swift | The Eras Tour")).not.toBeInTheDocument();
       expect(screen.getByText("Tomorrowland 2026")).toBeInTheDocument();
+
+      // Filter by Pending Payment
+      const pendingTab = screen.getByRole("tab", { name: /Pending Payment/i });
+      fireEvent.click(pendingTab);
+      expect(screen.getByText("Hans Zimmer Live World Tour")).toBeInTheDocument();
+
+      // Filter by Refund Requested
+      const refundRequestedTab = screen.getByRole("tab", { name: /Refund Requested/i });
+      fireEvent.click(refundRequestedTab);
+      expect(screen.getByText("NBA Global Games: Paris Match")).toBeInTheDocument();
+
+      // Filter by Refunded
+      const refundedTab = screen.getByRole("tab", { name: /Refunded/i });
+      fireEvent.click(refundedTab);
+      expect(screen.getByText("Primavera Sound Barcelona")).toBeInTheDocument();
     });
 
     it("should display empty state with Browse Events button when no orders match", () => {
@@ -372,6 +388,62 @@ describe("AccountPage & Customer Area", () => {
       // Reverts back to Alex
       expect(screen.getByDisplayValue("Alex")).toBeDisabled();
       expect(screen.queryByDisplayValue("ChangedName")).not.toBeInTheDocument();
+    });
+  });
+
+  describe("Decoupled Active vs Past Booking Lifecycle", () => {
+    it("should display active bookings count in overview based on completed status and future eventDate", () => {
+      renderWithAuth(<CustomerAreaContent />, {
+        isAuthenticated: true,
+        user: mockAuthenticatedUser,
+      });
+
+      expect(screen.getByText("Active Bookings")).toBeInTheDocument();
+      // In MOCK_ORDERS, ord-001 and ord-002 are completed and in the future (2027),
+      // ord-003 is completed but in the past (2026-08-01),
+      // ord-004 is canceled, ord-005 is pending, ord-006 is refund_requested, ord-007 is refunded.
+      // Therefore exactly 2 active bookings are counted.
+      expect(screen.getByText("2")).toBeInTheDocument();
+    });
+
+    it("should correctly classify orders using isActiveBooking and isPastBooking predicates", () => {
+      const fixedRefDate = new Date("2026-10-15T00:00:00Z");
+
+      const futureCompleted = MOCK_ORDERS.find((o) => o.id === "ord-2026-001")!;
+      const pastCompleted = MOCK_ORDERS.find((o) => o.id === "ord-2026-003")!;
+      const pendingOrder = MOCK_ORDERS.find((o) => o.status === "pending")!;
+      const canceledOrder = MOCK_ORDERS.find((o) => o.status === "canceled")!;
+      const refundRequested = MOCK_ORDERS.find((o) => o.status === "refund_requested")!;
+      const refundedOrder = MOCK_ORDERS.find((o) => o.status === "refunded")!;
+
+      // Future completed -> active booking
+      expect(isActiveBooking(futureCompleted, fixedRefDate)).toBe(true);
+      expect(isPastBooking(futureCompleted, fixedRefDate)).toBe(false);
+
+      // Past completed -> past booking
+      expect(isActiveBooking(pastCompleted, fixedRefDate)).toBe(false);
+      expect(isPastBooking(pastCompleted, fixedRefDate)).toBe(true);
+
+      // Non-completed statuses are neither active nor past bookings
+      expect(isActiveBooking(pendingOrder, fixedRefDate)).toBe(false);
+      expect(isPastBooking(pendingOrder, fixedRefDate)).toBe(false);
+
+      expect(isActiveBooking(canceledOrder, fixedRefDate)).toBe(false);
+      expect(isPastBooking(canceledOrder, fixedRefDate)).toBe(false);
+
+      expect(isActiveBooking(refundRequested, fixedRefDate)).toBe(false);
+      expect(isPastBooking(refundRequested, fixedRefDate)).toBe(false);
+
+      expect(isActiveBooking(refundedOrder, fixedRefDate)).toBe(false);
+      expect(isPastBooking(refundedOrder, fixedRefDate)).toBe(false);
+    });
+
+    it("should return human-readable labels for all OrderStatus values", () => {
+      expect(getOrderStatusLabel("completed")).toBe("Completed");
+      expect(getOrderStatusLabel("pending")).toBe("Pending Payment");
+      expect(getOrderStatusLabel("refund_requested")).toBe("Refund Requested");
+      expect(getOrderStatusLabel("refunded")).toBe("Refunded");
+      expect(getOrderStatusLabel("canceled")).toBe("Canceled");
     });
   });
 });
