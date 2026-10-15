@@ -26,6 +26,7 @@ import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import { Order, OrderStatus } from "../../types/order";
 import { formatEventDate } from "../../utils/date-formatter";
 import { navigate } from "../../router/navigation";
+import { useChatStore } from "../../store/chatStore";
 
 interface MyOrdersSectionProps {
   orders: Order[];
@@ -45,6 +46,7 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
   onSelectOrder,
 }) => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const { openWithBooking } = useChatStore();
 
   const filteredOrders = orders.filter((order) => {
     if (statusFilter === "all") return true;
@@ -381,29 +383,27 @@ export const MyOrdersSection: React.FC<MyOrdersSectionProps> = ({
           </DialogContent>
 
           <DialogActions sx={{ p: 2, justifyContent: "space-between" }}>
-            {/* Manage Booking Button (AI Chat Hook - Currently Disabled) */}
+            {/* Manage Booking Button (AI Chat Hook) */}
             <Tooltip
-              title="Manage Booking with our AI support assistant will be available soon."
+              title="Open AI Support Chat for this booking"
               arrow
             >
-              <span>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  disabled
-                  startIcon={<SmartToyOutlinedIcon />}
-                  data-order-id={selectedOrder.id}
-                  data-order-ref={selectedOrder.orderReference}
-                  sx={{
-                    textTransform: "none",
-                    fontWeight: 700,
-                    borderRadius: 2,
-                    opacity: 0.6,
-                  }}
-                >
-                  Manage Booking
-                </Button>
-              </span>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<SmartToyOutlinedIcon />}
+                data-order-id={selectedOrder.id}
+                data-order-ref={selectedOrder.orderReference}
+                aria-label="Manage Booking"
+                onClick={() => openWithBooking(selectedOrder)}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 700,
+                  borderRadius: 2,
+                }}
+              >
+                Manage Booking
+              </Button>
             </Tooltip>
 
             <Button

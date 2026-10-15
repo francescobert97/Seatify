@@ -6,6 +6,7 @@ import { HomePage } from "./pages/Home/HomePage";
 import { EventDetailsPage } from "./pages/EventDetails/EventDetailsPage";
 import { CheckoutPage } from "./pages/Checkout/CheckoutPage";
 import { AccountPage } from "./pages/Account/AccountPage";
+import { ChatWidget } from "./components/chat/ChatWidget";
 import { useCurrentRoute } from "./router/navigation";
 
 export const App: React.FC = () => {
@@ -24,6 +25,7 @@ export const App: React.FC = () => {
         ) : (
           <HomePage />
         )}
+        <ChatWidget />
       </AuthProvider>
     </ThemeProvider>
   );

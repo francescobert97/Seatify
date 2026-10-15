@@ -9,6 +9,7 @@ import { AuthContextType } from "../../src/types/auth";
 import { User } from "@supabase/supabase-js";
 import { MOCK_ORDERS } from "../../src/data/mockOrders";
 import * as navigation from "../../src/router/navigation";
+import { useChatStore } from "../../src/store/chatStore";
 
 describe("AccountPage & Customer Area", () => {
   const createMockAuthContext = (overrides?: Partial<AuthContextType>): AuthContextType => ({
@@ -151,7 +152,7 @@ describe("AccountPage & Customer Area", () => {
       // Opens dialog
       expect(screen.getByRole("dialog")).toBeInTheDocument();
       expect(screen.getByText("Order Details")).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /Manage Booking/i })).toBeDisabled();
+      expect(screen.getByRole("button", { name: /Manage Booking/i })).toBeEnabled();
     });
   });
 
@@ -240,9 +241,17 @@ describe("AccountPage & Customer Area", () => {
       // Manage Booking button verification
       const manageBtn = screen.getByRole("button", { name: /Manage Booking/i });
       expect(manageBtn).toBeInTheDocument();
-      expect(manageBtn).toBeDisabled();
+      expect(manageBtn).toBeEnabled();
       expect(manageBtn).toHaveAttribute("data-order-id", testOrder.id);
       expect(manageBtn).toHaveAttribute("data-order-ref", testOrder.orderReference);
+
+      // Clicking Manage Booking opens chat with order context
+      fireEvent.click(manageBtn);
+      const chatState = useChatStore.getState();
+      expect(chatState.isOpen).toBe(true);
+      expect(chatState.activeBooking?.orderReference).toBe(testOrder.orderReference);
+      expect(chatState.activeBooking?.eventName).toBe(testOrder.eventName);
+      expect(chatState.activeBooking?.ticketCount).toBe(2);
 
       // Close modal
       const closeBtn = screen.getByRole("button", { name: /close order details/i });
