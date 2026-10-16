@@ -1,5 +1,5 @@
 import { PaymentProvider } from "../providers/paymentProvider.js";
-import { PaymentResult, RefundResult } from "../types/payment.js";
+import { PaymentResult, RefundResult, WebhookEvent } from "../types/payment.js";
 
 /**
  * PaymentService contains the business logic for Seatify payments.
@@ -10,13 +10,22 @@ export class PaymentService {
   constructor(private readonly provider: PaymentProvider) {}
 
   /**
-   * Process a payment for the given total amount and currency.
-   * Delegates the actual charge to the injected PaymentProvider.
+   * Process a payment for the given total amount and currency, with optional gateway session metadata.
+   * Delegates the actual charge or checkout session creation to the injected PaymentProvider.
    */
-  async processPayment(amount: number, currency: string = "EUR"): Promise<PaymentResult> {
+  async processPayment(
+    amount: number,
+    currency: string = "EUR",
+    metadata?: Record<string, string>
+  ): Promise<PaymentResult> {
     if (amount <= 0) {
       throw new Error("Payment amount must be greater than zero");
     }
+
+    if (metadata !== undefined) {
+      return this.provider.processPayment(amount, currency, metadata);
+    }
+
     return this.provider.processPayment(amount, currency);
   }
 
@@ -30,4 +39,16 @@ export class PaymentService {
     }
     return this.provider.refundPayment(paymentId);
   }
+
+  /**
+   * Verifies the authenticity of an incoming payment webhook event using the injected provider.
+   */
+  verifyWebhook(
+    payload: string | Record<string, unknown>,
+    signature: string | undefined,
+    secret?: string
+  ): WebhookEvent {
+    return this.provider.verifyWebhookSignature(payload, signature, secret);
+  }
 }
+

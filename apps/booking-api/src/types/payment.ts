@@ -1,14 +1,6 @@
-// Cart item sent from the frontend during checkout
-export interface CheckoutCartItem {
-  eventId: string;
-  ticketTypeId: string;
-  quantity: number;
-}
-
-// The payload the frontend POSTs to POST /api/payments
+// The payload sent to POST /api/payments
 export interface CreatePaymentRequest {
-  items: CheckoutCartItem[];
-  currency?: string;
+  orderReference: string;
 }
 
 // Result returned by PaymentProvider.processPayment()
@@ -18,6 +10,7 @@ export interface PaymentResult {
   amount: number;
   currency: string;
   createdAt: string;
+  metadata?: Record<string, string>;
 }
 
 // Result returned by PaymentProvider.refundPayment()
@@ -27,3 +20,17 @@ export interface RefundResult {
   status: "succeeded" | "failed";
   refundedAt: string;
 }
+
+// Webhook event structure (standard payment provider event model)
+export interface WebhookEvent {
+  id: string;
+  type: string;
+  data: {
+    object: {
+      id?: string;
+      metadata?: Record<string, string>;
+      [key: string]: unknown;
+    };
+  };
+}
+
